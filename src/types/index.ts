@@ -4,6 +4,14 @@ export interface Document {
   date: string;
   content: string;
   scenarioId: string;
+  // Enhanced for RAG simulation
+  chunks?: string[];
+  embedding?: number[];
+}
+
+export interface RetrievedDocument extends Document {
+  similarityScore: number;
+  matchedChunk?: string;
 }
 
 export interface SystemRecord {
@@ -23,8 +31,9 @@ export interface DemoScenario {
 
 export interface RAGResult {
   answer: string;
-  retrievedDocs: Document[];
+  retrievedDocs: RetrievedDocument[];
   confidence: number;
+  failureMode?: 'stale_docs' | 'missing_context' | 'conflicting_sources' | 'correct';
 }
 
 export interface DeterministicResult {

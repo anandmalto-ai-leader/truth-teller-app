@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Search, Send, Link2, Eye, EyeOff, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,10 +11,11 @@ import { PollWidget } from '@/components/PollWidget';
 import { useDataStore } from '@/store/dataStore';
 import { 
   demoScenarios, 
-  ragAnswers, 
   deterministicAnswers, 
   conflicts 
 } from '@/data/mockData';
+import { generateRAGResult } from '@/lib/ragSimulator';
+import { RAGResult } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 
@@ -24,6 +25,8 @@ export default function Index() {
   const [showReasoning, setShowReasoning] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasResult, setHasResult] = useState(false);
+  const [ragResult, setRagResult] = useState<RAGResult | null>(null);
+  const [runCount, setRunCount] = useState(1);
 
   const { documents, systemRecords } = useDataStore();
 
@@ -34,7 +37,17 @@ export default function Index() {
       setQuery(scenario.question);
     }
     setHasResult(false);
+    setRagResult(null);
+    setRunCount(1);
   };
+
+  const runRAGSimulation = useCallback(() => {
+    if (!selectedScenario || !query.trim()) return;
+    
+    const scenarioDocs = documents.filter(d => d.scenarioId === selectedScenario);
+    const result = generateRAGResult(query, scenarioDocs, selectedScenario);
+    setRagResult(result);
+  }, [selectedScenario, query, documents]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,9 +65,19 @@ export default function Index() {
 
     // Simulate API call delay
     setTimeout(() => {
+      runRAGSimulation();
       setIsLoading(false);
       setHasResult(true);
     }, 1200);
+  };
+
+  const handleRerun = () => {
+    setRunCount(prev => prev + 1);
+    runRAGSimulation();
+    toast({
+      title: 'RAG Re-run Complete',
+      description: `Run #${runCount + 1}: Notice how confidence and similarity scores vary!`,
+    });
   };
 
   const handleCopyShareLink = () => {
@@ -68,15 +91,11 @@ export default function Index() {
     });
   };
 
-  const currentRag = selectedScenario ? ragAnswers[selectedScenario] : null;
   const currentDeterministic = selectedScenario ? deterministicAnswers[selectedScenario] : null;
   const currentConflict = selectedScenario ? conflicts[selectedScenario] : null;
   const currentRecord = selectedScenario 
     ? systemRecords.find((r) => r.scenarioId === selectedScenario) 
     : null;
-  const retrievedDocs = selectedScenario 
-    ? documents.filter((d) => d.scenarioId === selectedScenario) 
-    : [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -157,21 +176,27 @@ export default function Index() {
         </div>
 
         {/* Conflict Banner */}
-        {hasResult && currentConflict?.hasConflict && (
+        {hasResult && currentConflict?.hasConflict && ragResult && (
           <div className="mb-6">
-            <ConflictBanner reason={currentConflict.reason} />
+            <ConflictBanner 
+              reason={currentConflict.reason} 
+              failureMode={ragResult.failureMode}
+            />
           </div>
         )}
 
         {/* Comparison Panels */}
-        {(isLoading || hasResult) && currentRag && currentDeterministic && currentRecord && (
+        {(isLoading || hasResult) && currentDeterministic && currentRecord && (
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             <RAGPanel
-              answer={currentRag.answer}
-              retrievedDocs={retrievedDocs}
-              confidence={currentRag.confidence}
+              answer={ragResult?.answer || ''}
+              retrievedDocs={ragResult?.retrievedDocs || []}
+              confidence={ragResult?.confidence || 0}
               showReasoning={showReasoning}
               isLoading={isLoading}
+              failureMode={ragResult?.failureMode}
+              onRerun={handleRerun}
+              runCount={runCount}
             />
             <DeterministicPanel
               answer={currentDeterministic}
@@ -198,10 +223,14 @@ export default function Index() {
             <h2 className="text-xl font-semibold text-foreground mb-2">
               Compare RAG vs Deterministic Answers
             </h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
+            <p className="text-muted-foreground max-w-md mx-auto mb-4">
               Select a demo scenario above to see how document-based retrieval compares 
               to authoritative system-of-record data.
             </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-rag/10 border border-rag/20 text-sm text-rag">
+              <span>💡</span>
+              <span>Click "Run Again" to see how RAG results vary with each query!</span>
+            </div>
           </div>
         )}
       </main>
