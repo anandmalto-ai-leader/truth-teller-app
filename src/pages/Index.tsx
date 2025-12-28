@@ -9,6 +9,7 @@ import { ConflictBanner } from '@/components/ConflictBanner';
 import { ScenarioSelector } from '@/components/ScenarioSelector';
 import { PollWidget } from '@/components/PollWidget';
 import { ChunkingDemo } from '@/components/ChunkingDemo';
+import { TimelineVisualization } from '@/components/TimelineVisualization';
 import { useDataStore } from '@/store/dataStore';
 import { 
   demoScenarios, 
@@ -204,6 +205,16 @@ export default function Index() {
               record={currentRecord}
               showReasoning={showReasoning}
               isLoading={isLoading}
+            />
+          </div>
+        )}
+
+        {/* Timeline Visualization */}
+        {hasResult && ragResult?.retrievedDocs && ragResult.retrievedDocs.length > 0 && currentRecord && (
+          <div className="mb-8">
+            <TimelineVisualization 
+              documents={ragResult.retrievedDocs}
+              systemRecord={currentRecord}
             />
           </div>
         )}

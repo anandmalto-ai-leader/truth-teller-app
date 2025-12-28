@@ -25,6 +25,12 @@ export const demoScenarios: DemoScenario[] = [
     question: 'What is the resolution for support ticket TICKET-4455?',
     icon: '🎭',
   },
+  {
+    id: 'correct',
+    name: 'Account Owner (Globex Inc)',
+    question: 'Who is the account owner for Globex Inc?',
+    icon: '✅',
+  },
 ];
 
 export const initialDocuments: Document[] = [
@@ -191,6 +197,45 @@ export const initialDocuments: Document[] = [
     ],
     embedding: [0.55, 0.42, 0.65, 0.44, 0.58],
   },
+  
+  // Correct scenario - fresh docs that match system of record
+  {
+    id: 'doc_14',
+    scenarioId: 'correct',
+    title: 'Account Assignment Email',
+    date: '2025-12-27',
+    content: 'Globex Inc account has been assigned to Sarah Chen as the primary account owner effective immediately.',
+    chunks: [
+      'Globex Inc account has been assigned to Sarah Chen as the primary account owner.',
+      'Effective immediately.',
+    ],
+    embedding: [0.72, 0.55, 0.48, 0.63, 0.51],
+  },
+  {
+    id: 'doc_15',
+    scenarioId: 'correct',
+    title: 'CRM Update Note',
+    date: '2025-12-27',
+    content: 'Updated Globex Inc record. Account owner: Sarah Chen. Contact: sarah.chen@company.com.',
+    chunks: [
+      'Updated Globex Inc record.',
+      'Account owner: Sarah Chen.',
+      'Contact: sarah.chen@company.com.',
+    ],
+    embedding: [0.74, 0.52, 0.51, 0.61, 0.54],
+  },
+  {
+    id: 'doc_16',
+    scenarioId: 'correct',
+    title: 'Handoff Confirmation',
+    date: '2025-12-27',
+    content: 'Confirmed: Sarah Chen is now the owner for Globex Inc. Previous owner John Doe has transitioned all responsibilities.',
+    chunks: [
+      'Confirmed: Sarah Chen is now the owner for Globex Inc.',
+      'Previous owner John Doe has transitioned all responsibilities.',
+    ],
+    embedding: [0.71, 0.53, 0.49, 0.65, 0.52],
+  },
 ];
 
 export const initialSystemRecords: SystemRecord[] = [
@@ -248,6 +293,19 @@ export const initialSystemRecords: SystemRecord[] = [
     source: 'Support API',
     last_updated: '2025-12-28T08:00:00Z',
   },
+  {
+    id: 'rec_5',
+    scenarioId: 'correct',
+    data: {
+      account_id: 'globex_456',
+      company: 'Globex Inc',
+      account_owner: 'Sarah Chen',
+      owner_email: 'sarah.chen@company.com',
+      status: 'Active',
+    },
+    source: 'CRM API',
+    last_updated: '2025-12-27T11:00:00Z',
+  },
 ];
 
 // Deterministic answers from system of record
@@ -256,6 +314,7 @@ export const deterministicAnswers: Record<string, string> = {
   invoice: 'Invoice INV-7782 has been Paid. Payment received on Dec 27, 2025 at 9:48 AM UTC.',
   appointment: 'Patient p_9821\'s appointment is scheduled for 3:30 PM (15:30) on Dec 27, 2025 with Dr. Smith.',
   hallucination: 'Ticket TICKET-4455 is still Open with no resolution. Assigned to Mike. Last activity: Dec 23, 2025.',
+  correct: 'The account owner for Globex Inc is Sarah Chen (sarah.chen@company.com). Account status: Active.',
 };
 
 // Failure mode explanations
@@ -299,5 +358,9 @@ export const conflicts: Record<string, { hasConflict: boolean; reason: string }>
   hallucination: {
     hasConflict: true,
     reason: 'RAG invented a specific resolution that doesn\'t exist. The ticket is still open with no resolution.',
+  },
+  correct: {
+    hasConflict: false,
+    reason: 'Both RAG and System of Record agree: Sarah Chen is the account owner for Globex Inc.',
   },
 };
