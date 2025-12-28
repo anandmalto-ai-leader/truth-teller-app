@@ -19,6 +19,12 @@ export const demoScenarios: DemoScenario[] = [
     question: 'What time is patient p_9821\'s appointment?',
     icon: '📅',
   },
+  {
+    id: 'hallucination',
+    name: 'Support Ticket (TICKET-4455)',
+    question: 'What is the resolution for support ticket TICKET-4455?',
+    icon: '🎭',
+  },
 ];
 
 export const initialDocuments: Document[] = [
@@ -147,6 +153,44 @@ export const initialDocuments: Document[] = [
     ],
     embedding: [0.53, 0.78, 0.55, 0.53, 0.40],
   },
+  
+  // Hallucination scenario - docs with vague/incomplete info that leads to fabrication
+  {
+    id: 'doc_11',
+    scenarioId: 'hallucination',
+    title: 'Support Ticket Log',
+    date: '2025-12-22',
+    content: 'TICKET-4455 opened by user regarding login issues. Agent assigned: Mike.',
+    chunks: [
+      'TICKET-4455 opened by user regarding login issues.',
+      'Agent assigned: Mike.',
+    ],
+    embedding: [0.61, 0.44, 0.72, 0.38, 0.55],
+  },
+  {
+    id: 'doc_12',
+    scenarioId: 'hallucination',
+    title: 'Team Chat Excerpt',
+    date: '2025-12-23',
+    content: 'Mike mentioned he was looking into TICKET-4455. Something about password reset flow.',
+    chunks: [
+      'Mike mentioned he was looking into TICKET-4455.',
+      'Something about password reset flow.',
+    ],
+    embedding: [0.58, 0.47, 0.69, 0.41, 0.52],
+  },
+  {
+    id: 'doc_13',
+    scenarioId: 'hallucination',
+    title: 'Weekly Support Summary',
+    date: '2025-12-24',
+    content: 'Several tickets resolved this week including authentication and billing issues. Team performance was excellent.',
+    chunks: [
+      'Several tickets resolved this week including authentication and billing issues.',
+      'Team performance was excellent.',
+    ],
+    embedding: [0.55, 0.42, 0.65, 0.44, 0.58],
+  },
 ];
 
 export const initialSystemRecords: SystemRecord[] = [
@@ -190,6 +234,20 @@ export const initialSystemRecords: SystemRecord[] = [
     source: 'Calendar API',
     last_updated: '2025-12-26T18:02:00Z',
   },
+  {
+    id: 'rec_4',
+    scenarioId: 'hallucination',
+    data: {
+      ticket_id: 'TICKET-4455',
+      status: 'Open',
+      priority: 'Medium',
+      assigned_to: 'Mike',
+      resolution: null,
+      last_activity: '2025-12-23T14:30:00Z',
+    },
+    source: 'Support API',
+    last_updated: '2025-12-28T08:00:00Z',
+  },
 ];
 
 // Deterministic answers from system of record
@@ -197,6 +255,7 @@ export const deterministicAnswers: Record<string, string> = {
   subscription: 'Acme Corp is on the Pro plan with Active status, billed Monthly.',
   invoice: 'Invoice INV-7782 has been Paid. Payment received on Dec 27, 2025 at 9:48 AM UTC.',
   appointment: 'Patient p_9821\'s appointment is scheduled for 3:30 PM (15:30) on Dec 27, 2025 with Dr. Smith.',
+  hallucination: 'Ticket TICKET-4455 is still Open with no resolution. Assigned to Mike. Last activity: Dec 23, 2025.',
 };
 
 // Failure mode explanations
@@ -217,6 +276,10 @@ export const failureModeExplanations: Record<string, { title: string; descriptio
     title: 'Correct Answer',
     description: 'In this case, the documents happened to contain current information that matches the system of record.',
   },
+  hallucination: {
+    title: 'Hallucination',
+    description: 'The LLM fabricated specific details that don\'t exist in any retrieved document. When docs are vague, the model "fills in gaps" with plausible-sounding but incorrect information.',
+  },
 };
 
 // Conflict detection
@@ -232,5 +295,9 @@ export const conflicts: Record<string, { hasConflict: boolean; reason: string }>
   appointment: {
     hasConflict: true,
     reason: 'RAG mentions 10:00 AM or "afternoon", but System of Record shows exact time: 3:30 PM.',
+  },
+  hallucination: {
+    hasConflict: true,
+    reason: 'RAG invented a specific resolution that doesn\'t exist. The ticket is still open with no resolution.',
   },
 };

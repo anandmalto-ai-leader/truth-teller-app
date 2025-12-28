@@ -1,5 +1,5 @@
 import { FileText, Clock, RefreshCw, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
-import { RetrievedDocument } from '@/types';
+import { RetrievedDocument, FailureMode } from '@/types';
 import { useState } from 'react';
 import { failureModeExplanations } from '@/data/mockData';
 
@@ -9,7 +9,7 @@ interface RAGPanelProps {
   confidence: number;
   showReasoning: boolean;
   isLoading?: boolean;
-  failureMode?: 'stale_docs' | 'missing_context' | 'conflicting_sources' | 'correct';
+  failureMode?: FailureMode;
   onRerun?: () => void;
   runCount?: number;
 }

@@ -8,6 +8,7 @@ import { DeterministicPanel } from '@/components/DeterministicPanel';
 import { ConflictBanner } from '@/components/ConflictBanner';
 import { ScenarioSelector } from '@/components/ScenarioSelector';
 import { PollWidget } from '@/components/PollWidget';
+import { ChunkingDemo } from '@/components/ChunkingDemo';
 import { useDataStore } from '@/store/dataStore';
 import { 
   demoScenarios, 
@@ -203,6 +204,18 @@ export default function Index() {
               record={currentRecord}
               showReasoning={showReasoning}
               isLoading={isLoading}
+            />
+          </div>
+        )}
+
+        {/* Chunking Demo */}
+        {hasResult && ragResult?.retrievedDocs[0] && (
+          <div className="mb-8">
+            <ChunkingDemo 
+              document={{
+                title: ragResult.retrievedDocs[0].title,
+                content: ragResult.retrievedDocs[0].content,
+              }}
             />
           </div>
         )}

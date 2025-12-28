@@ -101,13 +101,23 @@ const answerTemplates: Record<string, string[]> = {
     "Based on the documents, patient p_9821's appointment was rescheduled. Originally 10:00 AM, now moved to afternoon.",
     "I found that the appointment was initially at 10:00 AM but was rescheduled to the afternoon according to recent notes.",
   ],
+  hallucination: [
+    "Based on the documents, TICKET-4455 was resolved by implementing a password reset fix. Mike completed this on December 24th as part of the weekly ticket resolution.",
+    "The support ticket TICKET-4455 has been resolved. According to chat logs, Mike fixed the login issue by resetting the user's password and clearing their session cache.",
+    "TICKET-4455 was closed after Mike identified it as a browser cookie issue. The resolution involved clearing cookies and resetting the 2FA token.",
+  ],
 };
 
 // Determine failure mode based on scenario context
 const getFailureMode = (
   scenarioId: string,
   retrievedDocs: RetrievedDocument[]
-): 'stale_docs' | 'missing_context' | 'conflicting_sources' | 'correct' => {
+): 'stale_docs' | 'missing_context' | 'conflicting_sources' | 'correct' | 'hallucination' => {
+  // Hallucination scenario - docs are vague, model fabricates details
+  if (scenarioId === 'hallucination') {
+    return 'hallucination';
+  }
+
   // Check if docs are old (stale)
   const now = new Date();
   const hasStaleDoc = retrievedDocs.some(doc => {
