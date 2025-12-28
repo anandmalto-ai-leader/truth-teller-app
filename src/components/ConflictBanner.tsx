@@ -1,9 +1,10 @@
-import { AlertTriangle, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, Info, ChevronDown, ChevronUp, Ghost } from 'lucide-react';
 import { useState } from 'react';
+import { FailureMode } from '@/types';
 
 interface ConflictBannerProps {
   reason: string;
-  failureMode?: 'stale_docs' | 'missing_context' | 'conflicting_sources' | 'correct';
+  failureMode?: FailureMode;
 }
 
 const failureModeDetails: Record<string, { icon: string; tip: string }> = {
@@ -22,6 +23,10 @@ const failureModeDetails: Record<string, { icon: string; tip: string }> = {
   correct: {
     icon: '✓',
     tip: 'The documents happened to contain accurate, current information.',
+  },
+  hallucination: {
+    icon: '🎭',
+    tip: 'Mitigation: Add grounding checks, require citations, implement "I don\'t know" fallbacks for insufficient docs.',
   },
 };
 
@@ -57,9 +62,14 @@ export function ConflictBanner({ reason, failureMode = 'stale_docs' }: ConflictB
           {expanded && (
             <div className="mt-3 p-3 rounded-lg bg-background/50 border border-conflict/20 animate-fade-in">
               <p className="text-sm text-muted-foreground mb-3">
-                <strong className="text-foreground">Why RAG fails here:</strong> RAG systems search through 
-                document embeddings to find semantically similar content. However, they have no concept of 
-                "current state" — they retrieve what was written, not what is true now.
+                <strong className="text-foreground">Why RAG fails here:</strong>{' '}
+                {failureMode === 'hallucination' ? (
+                  <>The LLM <strong>fabricated specific details</strong> that don't exist in any retrieved document. 
+                  When documents are vague or incomplete, models "fill in gaps" with plausible-sounding but incorrect information.</>
+                ) : (
+                  <>RAG systems search through document embeddings to find semantically similar content. However, 
+                  they have no concept of "current state" — they retrieve what was written, not what is true now.</>
+                )}
               </p>
               <p className="text-sm text-rag/80">
                 <strong>💡 {details.tip}</strong>

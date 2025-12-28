@@ -29,11 +29,13 @@ export interface DemoScenario {
   icon: string;
 }
 
+export type FailureMode = 'stale_docs' | 'missing_context' | 'conflicting_sources' | 'correct' | 'hallucination';
+
 export interface RAGResult {
   answer: string;
   retrievedDocs: RetrievedDocument[];
   confidence: number;
-  failureMode?: 'stale_docs' | 'missing_context' | 'conflicting_sources' | 'correct';
+  failureMode?: FailureMode;
 }
 
 export interface DeterministicResult {
