@@ -106,6 +106,11 @@ const answerTemplates: Record<string, string[]> = {
     "The support ticket TICKET-4455 has been resolved. According to chat logs, Mike fixed the login issue by resetting the user's password and clearing their session cache.",
     "TICKET-4455 was closed after Mike identified it as a browser cookie issue. The resolution involved clearing cookies and resetting the 2FA token.",
   ],
+  correct: [
+    "The account owner for Globex Inc is Sarah Chen. This was confirmed in the Account Assignment Email from Dec 27.",
+    "Based on the documents, Sarah Chen is the primary account owner for Globex Inc. The CRM update note confirms her contact as sarah.chen@company.com.",
+    "According to the handoff confirmation, Sarah Chen is now the owner for Globex Inc, having taken over from John Doe.",
+  ],
 };
 
 // Determine failure mode based on scenario context
@@ -116,6 +121,11 @@ const getFailureMode = (
   // Hallucination scenario - docs are vague, model fabricates details
   if (scenarioId === 'hallucination') {
     return 'hallucination';
+  }
+  
+  // Correct scenario - docs are fresh and accurate
+  if (scenarioId === 'correct') {
+    return 'correct';
   }
 
   // Check if docs are old (stale)
